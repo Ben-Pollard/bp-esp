@@ -1,0 +1,7 @@
+.opencode/node_modules/
+.opencode/opencode-loop/
+.opencode/package.json
+.opencode/package-lock.json
+build/
+sdkconfig
+.venv/
