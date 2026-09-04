@@ -1,25 +1,25 @@
 peripherals:
-  # Display SPI bus (HSPI) - ST7789 display
+  # Display SPI bus (HSPI = SPI2_HOST) - ILI9341 display
   - name: spi_display
     type: spi
     role: master
     config:
       spi_bus_config:
-        spi_port: SPI3_HOST
+        spi_port: SPI2_HOST
         mosi_io_num: 13
-        miso_io_num: 12
+        miso_io_num: -1
         sclk_io_num: 14
         quadwp_io_num: -1
         quadhd_io_num: -1
         max_transfer_sz: 32000
 
-  # SD card SPI bus (VSPI)
+  # SD card SPI bus (VSPI = SPI3_HOST)
   - name: spi_sdcard
     type: spi
     role: master
     config:
       spi_bus_config:
-        spi_port: SPI2_HOST
+        spi_port: SPI3_HOST
         mosi_io_num: 23
         miso_io_num: 19
         sclk_io_num: 18
@@ -36,30 +36,12 @@ peripherals:
       mode: GPIO_MODE_OUTPUT
       default_level: 1
 
-  # Display CS and DC are owned by the spi_display device config, not separate GPIOs
-
-  # RGB LED (active low, separate GPIOs)
-  - name: gpio_led_red
-    type: gpio
-    role: io
-    config:
-      pin: 4
-      mode: GPIO_MODE_OUTPUT
-      default_level: 1
-
-  - name: gpio_led_green
+  # RGB LED (GPIO16, active low)
+  - name: gpio_led_rgb
     type: gpio
     role: io
     config:
       pin: 16
-      mode: GPIO_MODE_OUTPUT
-      default_level: 1
-
-  - name: gpio_led_blue
-    type: gpio
-    role: io
-    config:
-      pin: 17
       mode: GPIO_MODE_OUTPUT
       default_level: 1
 

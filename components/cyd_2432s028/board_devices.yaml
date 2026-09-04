@@ -1,22 +1,24 @@
 devices:
-  # ST7789 240x320 SPI display (driver built into ESP-IDF)
+  # ILI9341 320x240 SPI display
   - name: display_lcd
-    chip: st7789
+    chip: ili9341
     type: display_lcd
     sub_type: spi
+    dependencies:
+      espressif/esp_lcd_ili9341: "*"
     config:
       swap_xy: false
       mirror_x: false
       mirror_y: false
-      x_max: 240
-      y_max: 320
-      invert_color: true
+      x_max: 320
+      y_max: 240
+      invert_color: false
       need_reset: true
       frame_format: RGB565_BE
       io_spi_config:
         cs_gpio_num: 15
         dc_gpio_num: 2
-        spi_mode: 3
+        spi_mode: 0
         pclk_hz: 40000000
         trans_queue_depth: 10
         lcd_cmd_bits: 8
@@ -31,7 +33,7 @@ devices:
           lsb_first: false
           cs_high_active: false
       lcd_panel_config:
-        reset_gpio_num: -1
+        reset_gpio_num: 4
         rgb_ele_order: LCD_RGB_ELEMENT_ORDER_RGB
         data_endian: LCD_RGB_DATA_ENDIAN_BIG
         bits_per_pixel: 16

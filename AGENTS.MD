@@ -1,9 +1,13 @@
-## Tooling & CLI
-- run idf via the esp-idf mcp if available
-- to activate the python env for idf.py:
-    - `eim list`
-    - `eim select <version>`
-    - `source <path/to/activate_idf*.sh>`
+## Connect to device
+- `./scripts/connect.sh`
+
+## idf.py
+- use `eim run "idf.py"`
+
+## Use board manager (bmgr)
+- pinout is defined in `components/<board_name>`
+- Validate pinout: `eim run "idf.py bmgr -b <board_name>"`
+
 
 ## Memory & Firmware Standards
 * **Memory Hierarchy:** DRAM (Data), IRAM (Instructions - must hold ISRs/Flash-write code), RTC Memory (Deep Sleep), PSRAM (External).

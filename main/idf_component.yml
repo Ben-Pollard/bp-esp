@@ -16,3 +16,4 @@ dependencies:
   #   public: true
   espressif/esp_board_manager: '*'
   espressif/esp_friends_boards: '*'
+  espressif/esp_lcd_ili9341: '*'

@@ -6,3 +6,5 @@ build/
 sdkconfig
 .venv/
 managed_components/
+
+dumps/
