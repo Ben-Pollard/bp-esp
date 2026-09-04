@@ -1,0 +1,24 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "default",
+      "displayName": "Development",
+      "description": "Debug build with verbose logging, halt on panic, canary checks",
+      "binaryDir": "build",
+      "cacheVariables": {
+        "SDKCONFIG": "./build/sdkconfig"
+      }
+    },
+    {
+      "name": "release",
+      "displayName": "Release",
+      "description": "Size-optimized, warning-level logs, bootloader logging disabled",
+      "binaryDir": "build/release",
+      "cacheVariables": {
+        "SDKCONFIG_DEFAULTS": "sdkconfig.defaults;sdkconfig.defaults.release",
+        "SDKCONFIG": "./build/release/sdkconfig"
+      }
+    }
+  ]
+}

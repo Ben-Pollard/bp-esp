@@ -1,11 +1,12 @@
-# This file was generated using idf.py save-defconfig or menuconfig [D] key. It can be edited manually.
-# Espressif IoT Development Framework (ESP-IDF) 6.1.0 Project Minimal Configuration
-#
-CONFIG_ESP_BOARD_PERIPH_GPIO_SUPPORT=y
-CONFIG_ESP_BOARD_PERIPH_SPI_SUPPORT=y
-CONFIG_ESP_BOARD_DEV_BUTTON_SUPPORT=y
-CONFIG_ESP_BOARD_DEV_BUTTON_SUB_GPIO_SUPPORT=y
-CONFIG_ESP_BOARD_DEV_DISPLAY_LCD_SUPPORT=y
-CONFIG_ESP_BOARD_DEV_DISPLAY_LCD_SUB_SPI_SUPPORT=y
-CONFIG_ESP_BOARD_DEV_FS_FAT_SUPPORT=y
-CONFIG_ESP_BOARD_DEV_FS_FAT_SUB_SPI_SUPPORT=y
+# Common app defaults — always apply regardless of preset
+# Board-specific config is in components/gen_bmgr_codes/board_manager.defaults (auto-generated)
+
+# Logging
+CONFIG_LOG_DEFAULT_LEVEL_DEBUG=y
+
+# Compilation
+CONFIG_COMPILER_OPTIMIZATION_DEBUG=y
+
+# Debugging
+CONFIG_ESP_SYSTEM_PANIC_PRINT_HALT=y
+CONFIG_FREERTOS_CHECK_STACKOVERFLOW_CANARY=y

@@ -1,0 +1,23 @@
+{
+    "version": 3,
+    "configurePresets": [
+        {
+            "name": "default",
+            "displayName": "Debug",
+            "description": "Debug build — logs at DEBUG, no optimization, stack canary",
+            "binaryDir": "build/debug",
+            "cacheVariables": {
+                "SDKCONFIG_DEFAULTS": "sdkconfig.defaults;components/gen_bmgr_codes/board_manager.defaults"
+            }
+        },
+        {
+            "name": "release",
+            "displayName": "Release",
+            "description": "Release build — warn logs, size-optimized, assertions off",
+            "binaryDir": "build/release",
+            "cacheVariables": {
+                "SDKCONFIG_DEFAULTS": "sdkconfig.defaults;sdkconfig.defaults.release;components/gen_bmgr_codes/board_manager.defaults"
+            }
+        }
+    ]
+}
