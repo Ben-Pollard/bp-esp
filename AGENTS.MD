@@ -2,7 +2,8 @@
 - `./scripts/connect.sh`
 
 ## idf.py
-- use `eim run "idf.py"`
+idf.py runs in a python environment managed by eim. You MUST invoke it using eim run, wrapping all python options and args in quotes, like this:
+- `eim run "idf.py build"`
 
 ## Use board manager (bmgr)
 - pinout is defined in `components/<board_name>`
