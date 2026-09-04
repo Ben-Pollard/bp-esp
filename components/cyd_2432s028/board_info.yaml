@@ -1,0 +1,5 @@
+board: cyd_2432s028
+chip: esp32
+version: 1.0.0
+description: "Sunton ESP32-2432S028 Cheap Yellow Display (CYD) non-R variant - 2.8in ST7789 display, XPT2046 touch, ESP32-WROOM-1"
+manufacturer: "Sunton"

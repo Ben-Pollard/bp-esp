@@ -5,3 +5,4 @@
 build/
 sdkconfig
 .venv/
+managed_components/

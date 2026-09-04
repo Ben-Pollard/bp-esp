@@ -1,0 +1,75 @@
+peripherals:
+  # Display SPI bus (HSPI) - ST7789 display
+  - name: spi_display
+    type: spi
+    role: master
+    config:
+      spi_bus_config:
+        spi_port: SPI3_HOST
+        mosi_io_num: 13
+        miso_io_num: 12
+        sclk_io_num: 14
+        quadwp_io_num: -1
+        quadhd_io_num: -1
+        max_transfer_sz: 32000
+
+  # SD card SPI bus (VSPI)
+  - name: spi_sdcard
+    type: spi
+    role: master
+    config:
+      spi_bus_config:
+        spi_port: SPI2_HOST
+        mosi_io_num: 23
+        miso_io_num: 19
+        sclk_io_num: 18
+        quadwp_io_num: -1
+        quadhd_io_num: -1
+        max_transfer_sz: 32000
+
+  # Display backlight (GPIO21, PWM capable via LEDC)
+  - name: gpio_lcd_bl
+    type: gpio
+    role: io
+    config:
+      pin: 21
+      mode: GPIO_MODE_OUTPUT
+      default_level: 1
+
+  # Display CS and DC are owned by the spi_display device config, not separate GPIOs
+
+  # RGB LED (active low, separate GPIOs)
+  - name: gpio_led_red
+    type: gpio
+    role: io
+    config:
+      pin: 4
+      mode: GPIO_MODE_OUTPUT
+      default_level: 1
+
+  - name: gpio_led_green
+    type: gpio
+    role: io
+    config:
+      pin: 16
+      mode: GPIO_MODE_OUTPUT
+      default_level: 1
+
+  - name: gpio_led_blue
+    type: gpio
+    role: io
+    config:
+      pin: 17
+      mode: GPIO_MODE_OUTPUT
+      default_level: 1
+
+  # BOOT button (GPIO0, active low with internal pull-up)
+  - name: gpio_boot_button
+    type: gpio
+    role: io
+    config:
+      pin: 0
+      mode: GPIO_MODE_INPUT
+      pull_up: true
+      pull_down: false
+      intr_type: GPIO_INTR_DISABLE
