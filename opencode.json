@@ -31,5 +31,93 @@
       "url": "https://ts-mcp.espressif.com/mcp",
       "enabled": true
     }
+  },
+
+  "agent": {
+    "afk": {
+      "model": "openrouter/deepseek/deepseek-v4-flash",
+      "mode": "primary",
+      "description": "Orchestrates AFK development work. Reads issues, dispatches implementer and reviewer subagents, updates tracker state.",
+      "permission": {
+        "read": { 
+          "*": "allow",
+          "*.env": "deny",
+          "*.env.*": "deny"
+        },
+        "edit": { "*": "allow" },
+        "bash": {
+          "*": "allow",
+          "git push *": "deny",
+          "git push --force *": "deny",
+          "git branch -D *": "deny",
+          "*cat *.env*": "deny",
+          "*grep *.env*": "deny",
+          "*head *.env*": "deny",
+          "*tail *.env*": "deny"
+        },
+        "task": "allow",
+        "webfetch": "ask",
+        "websearch": "ask"
+      }
+    },
+    "implementer": {
+      "model": "openrouter/deepseek/deepseek-v4-flash",
+      "mode": "subagent",
+      "description": "Writes production code and tests",
+      "permission": {
+        "read": { 
+          "*": "allow",
+          ".env": "deny",
+          "*.env": "deny",
+          "*.env.*": "deny"
+        },
+        "edit": { "*": "allow" },
+        "bash": {
+          "*": "allow",
+          "git push *": "deny",
+          "git push --force *": "deny",
+          "git branch -D *": "deny",
+          "*cat *.env*": "deny",
+          "*grep *.env*": "deny",
+          "*head *.env*": "deny",
+          "*tail *.env*": "deny"
+        },
+        "task": "deny",
+        "webfetch": "deny",
+        "websearch": "deny"
+      }
+    },
+    "reviewer": {
+      "model": "openrouter/deepseek/deepseek-v4-flash",
+      "mode": "subagent",
+      "description": "Reads code and diffs to review spec compliance and quality. Writes review outcomes.",
+      "permission": {
+        "read": { 
+          "*": "allow",
+          "*.env": "deny",
+          "*.env.*": "deny"
+        },
+        "edit": {
+          ".scratch/**": "allow",
+          "*": "deny"
+        },
+        "bash": {
+          "*": "allow",
+          "git push *": "deny",
+          "git push --force *": "deny",
+          "git branch -D *": "deny",
+          "git add *": "deny",
+          "git commit *": "deny",
+          "*cat *.env*": "deny",
+          "*grep *.env*": "deny",
+          "*head *.env*": "deny",
+          "*tail *.env*": "deny"
+        },
+        "task": "deny",
+        "webfetch": "deny",
+        "websearch": "deny"
+      }
+    }
   }
 }
+

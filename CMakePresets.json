@@ -2,9 +2,9 @@
     "version": 3,
     "configurePresets": [
         {
-            "name": "default",
+            "name": "debug",
             "displayName": "Debug",
-            "description": "Debug build — logs at DEBUG, no optimization, stack canary",
+            "description": "Debug build — GDB Stub, core dump, heap monitoring, no optimization",
             "binaryDir": "build/debug",
             "cacheVariables": {
                 "SDKCONFIG_DEFAULTS": "sdkconfig.defaults;components/gen_bmgr_codes/board_manager.defaults"

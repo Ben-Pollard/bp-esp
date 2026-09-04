@@ -1,4 +1,5 @@
 ## Connect to device
+Prove the device is connected and identify its port:
 - `./scripts/connect.sh`
 
 ## idf.py

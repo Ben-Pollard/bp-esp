@@ -7,9 +7,9 @@ devices:
     dependencies:
       espressif/esp_lcd_ili9341: "*"
     config:
-      swap_xy: false
-      mirror_x: false
-      mirror_y: false
+      swap_xy: true
+      mirror_x: true
+      mirror_y: true
       x_max: 320
       y_max: 240
       invert_color: false
@@ -34,7 +34,7 @@ devices:
           cs_high_active: false
       lcd_panel_config:
         reset_gpio_num: 4
-        rgb_ele_order: LCD_RGB_ELEMENT_ORDER_RGB
+        rgb_ele_order: LCD_RGB_ELEMENT_ORDER_BGR
         data_endian: LCD_RGB_DATA_ENDIAN_BIG
         bits_per_pixel: 16
         flags:
