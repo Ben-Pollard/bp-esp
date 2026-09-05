@@ -6,9 +6,69 @@ Prove the device is connected and identify its port:
 idf.py runs in a python environment managed by eim. You MUST invoke it using eim run, wrapping all python options and args in quotes, like this:
 - `eim run "idf.py build"`
 
-## Use board manager (bmgr)
-- pinout is defined in `components/<board_name>`
-- Validate pinout: `eim run "idf.py bmgr -b <board_name>"`
+## Configuration — Commands
+
+| Command | Purpose | When to use |
+|---|---|---|
+| `eim run "idf.py --preset debug build"` | Build using the `debug` preset from `CMakePresets.json` | Normal development build |
+| `eim run "idf.py --preset release build"` | Build using the `release` preset | Production build |
+| `eim run "idf.py reconfigure"` | Re-run CMake **without building** | After modifying `sdkconfig.defaults*` or `CMakePresets.json` — validates the config merge before a full build |
+| `eim run "idf.py refresh-config"` | Resolve default-value conflicts between Kconfig definitions and current `sdkconfig` | When Kconfig defaults change (e.g. after a component update) and sdkconfig holds stale values. Takes `--policy sdkconfig\|kconfig\|interactive` |
+| `eim run "idf.py config-report"` | Generate JSON config diagnostics (`build/<preset>/config/kconfig_parse_report.json`) | Debugging config issues — shows duplicate symbol defs, missing deps, warnings |
+| `eim run "idf.py save-defconfig"` | Write current `sdkconfig` values (that differ from IDF defaults) back to `sdkconfig.defaults` | After `menuconfig`-style changes *if you were forced to use it*, or when capturing a known-good config state |
+| `eim run "idf.py bmgr -b <board>"` | Validate board YAML and regenerate `board_manager.defaults` + C structs + `Kconfig.projbuild` into `gen_bmgr_codes/` | After editing `board_peripherals.yaml` or `board_devices.yaml` |
+| `eim run "idf.py bmgr -l"` | List known boards | Checking if a board is already registered |
+| `eim run "idf.py set-target <chip>"` | Change target chip | **WARNING**: wipes `sdkconfig`. Must re-run `bmgr -b` + `reconfigure` afterward |
+
+### Config Conventions
+
+- **No `menuconfig`**: It writes directly to `sdkconfig`, which is auto-generated and gets overwritten by `set-target`, `bmgr`, or `reconfigure`. Source of truth is the `.defaults` files, not `sdkconfig` itself.
+- **Always use presets**: `eim run "idf.py --preset debug build"`, not bare `idf.py build`. Presets define build directory and `SDKCONFIG_DEFAULTS` merge order.
+- **Kconfig vs sdkconfig.defaults**: `Kconfig`/`Kconfig.projbuild` defines *what options exist* (name, type, default, constraints). Create one only when you need a custom `CONFIG_` symbol in C/C++ code that IDF and managed components don't already provide.
+
+### Config Merge Order
+
+Controlled by `SDKCONFIG_DEFAULTS` in `CMakePresets.json`. Later files override earlier ones.
+
+| Preset | Files (in order) |
+|---|---|
+| `debug` | `sdkconfig.defaults` → `board_manager.defaults` |
+| `release` | `sdkconfig.defaults` → `sdkconfig.defaults.release` → `board_manager.defaults` |
+
+### Board Manager
+
+Pinout is defined in `components/<board_name>/`:
+- `board_info.yaml` — metadata (chip, version, manufacturer)
+- `board_peripherals.yaml` — physical interfaces (SPI buses with pin numbers, GPIOs)
+- `board_devices.yaml` — functional devices (ILI9341 display, SD card, button) mapped to their peripherals
+
+`eim run "idf.py bmgr -b <board>"` generates into `components/gen_bmgr_codes/`:
+
+| Generated file | Purpose |
+|---|---|
+| `board_manager.defaults` | Kconfig feature flags (`CONFIG_ESP_BOARD_DEV_DISPLAY_LCD_SUPPORT=y`) — merged into `sdkconfig` |
+| `gen_board_periph_config.c` | Pin assignments as C structs (`.mosi_io_num = 13`) — linked directly into the binary |
+| `gen_board_device_config.c` | Device params as C structs (`.cs_gpio_num = 15`, ILI9341 config) — linked directly |
+
+
+Note: Pin data skips Kconfig entirely and goes straight to C structs. Feature flags go through Kconfig → sdkconfig; pin assignments go through C code generation. Both are generated from the same YAML source by `bmgr`.
+
+### Typical Configuration Workflow
+
+```
+# After changing board YAML:
+eim run "idf.py bmgr -b cyd_2432s028"
+
+# After changing sdkconfig.defaults or CMakePresets.json:
+eim run "idf.py --preset debug reconfigure"     # validate merge, no build
+eim run "idf.py --preset debug config-report"   # check for config issues
+
+# After component updates (Kconfig defaults changed):
+eim run "idf.py --preset debug refresh-config --policy interactive"
+
+# Normal build:
+eim run "idf.py --preset debug build"
+```
 
 
 ## Memory & Firmware Standards

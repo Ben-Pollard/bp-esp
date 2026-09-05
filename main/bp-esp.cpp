@@ -126,7 +126,7 @@ extern "C" void app_main(void)
     lvgl_port_display_cfg_t disp_cfg = {};
     disp_cfg.io_handle   = lcd_handles->io_handle;
     disp_cfg.panel_handle = lcd_handles->panel_handle;
-disp_cfg.buffer_size = 320 * 64;
+disp_cfg.buffer_size = 320 * 32;
     disp_cfg.hres        = 320;
     disp_cfg.vres        = 240;
     disp_cfg.color_format = LV_COLOR_FORMAT_RGB565;
