@@ -8,5 +8,6 @@ dependencies = []
 
 [dependency-groups]
 dev = [
+    "pyserial>=3.5",
     "pytest-embedded[serial]>=2.9.3",
 ]

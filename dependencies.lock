@@ -155,6 +155,12 @@ dependencies:
       registry_url: https://components.espressif.com/
       type: service
     version: 9.5.0
+  xpt2046_touch:
+    dependencies: []
+    source:
+      path: components/xpt2046_touch
+      type: local
+    version: '*'
 direct_dependencies:
 - espressif/esp_board_manager
 - espressif/esp_friends_boards
@@ -163,6 +169,7 @@ direct_dependencies:
 - espressif/knob
 - idf
 - lvgl/lvgl
-manifest_hash: ba6fca139758082d23c09b187d20073abf493c7f245e13de657fd79eab37afee
+- xpt2046_touch
+manifest_hash: 640e7314b01abdc42d45aac0b3f0b09147e07fe9eebf6fc7b8980bcdd84ca3d4
 target: esp32
 version: 3.0.0

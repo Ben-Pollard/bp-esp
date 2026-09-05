@@ -1,0 +1,10 @@
+menu "bp-esp"
+
+    config ESP_DEBUG_TOUCH_OVERLAY
+        bool "Touch debug overlay"
+        default n
+        help
+            Draw an LVGL label on the top layer showing raw and calibrated
+            touch coordinates. Enabled by the debug preset only.
+
+endmenu

@@ -7,6 +7,7 @@
 #include "esp_lvgl_port.h"
 #include "lvgl.h"
 #include "demos/lv_demos.h"
+#include "xpt2046_touch.h"
 
 static const char *TAG = "bp-esp";
 
@@ -82,6 +83,51 @@ static void show_splash(lv_obj_t *scr)
     lv_anim_start(&a);
 }
 
+// Touch calibration: XPT2046 raw ADC range -> 320x240 screen coordinates.
+// Both axes are inverted on this panel: raw X is max at the left edge and
+// raw Y is max at the top edge, so each axis is mirrored before clamping.
+#define TOUCH_RAW_X_MIN  750
+#define TOUCH_RAW_X_MAX  2850
+#define TOUCH_RAW_Y_MIN  1000
+#define TOUCH_RAW_Y_MAX  3500
+
+static xpt2046_touch_handle_t *s_touch = NULL;
+
+#if CONFIG_ESP_DEBUG_TOUCH_OVERLAY
+static lv_obj_t *s_touch_dbg = NULL;
+#endif
+
+static void calibrate_touch(uint16_t raw_x, uint16_t raw_y, int *out_x, int *out_y)
+{
+    int nx = (int)(((int32_t)raw_x - TOUCH_RAW_X_MIN) * 319L / (TOUCH_RAW_X_MAX - TOUCH_RAW_X_MIN));
+    int ny = (int)(((int32_t)raw_y - TOUCH_RAW_Y_MIN) * 239L / (TOUCH_RAW_Y_MAX - TOUCH_RAW_Y_MIN));
+    int x = 319 - nx;
+    int y = 239 - ny;
+    *out_x = x < 0 ? 0 : (x > 319 ? 319 : x);
+    *out_y = y < 0 ? 0 : (y > 239 ? 239 : y);
+}
+
+static void touch_read_cb(lv_indev_t *indev, lv_indev_data_t *data)
+{
+    uint16_t raw_x = 0;
+    uint16_t raw_y = 0;
+    if (s_touch && xpt2046_touch_read(s_touch, &raw_x, &raw_y)) {
+        int x, y;
+        calibrate_touch(raw_x, raw_y, &x, &y);
+        data->point.x = x;
+        data->point.y = y;
+        data->state = LV_INDEV_STATE_PR;
+#if CONFIG_ESP_DEBUG_TOUCH_OVERLAY
+        if (s_touch_dbg) {
+            lv_label_set_text_fmt(s_touch_dbg, "raw %u,%u\nscr %d,%d",
+                                  (unsigned)raw_x, (unsigned)raw_y, x, y);
+        }
+#endif
+    } else {
+        data->state = LV_INDEV_STATE_REL;
+    }
+}
+
 static void start_lvgl_demo(void *arg)
 {
     vTaskDelay(pdMS_TO_TICKS(3000));
@@ -144,10 +190,35 @@ disp_cfg.buffer_size = 320 * 32;
         return;
     }
 
+    void *touch_raw = NULL;
+    ret = esp_board_manager_get_device_handle("xpt2046_touch", &touch_raw);
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to get touch handle: %d", ret);
+        return;
+    }
+    s_touch = (xpt2046_touch_handle_t *)touch_raw;
+
+    lvgl_port_lock(0);
+    lv_indev_t *touch_indev = lv_indev_create();
+    lv_indev_set_type(touch_indev, LV_INDEV_TYPE_POINTER);
+    lv_indev_set_read_cb(touch_indev, touch_read_cb);
+    lv_indev_set_display(touch_indev, disp);
+    lvgl_port_unlock();
+
     lvgl_port_lock(0);
     lv_obj_t *active_screen = lv_screen_active();
     show_splash(active_screen);
     lvgl_port_unlock();
+
+#if CONFIG_ESP_DEBUG_TOUCH_OVERLAY
+    lvgl_port_lock(0);
+    s_touch_dbg = lv_label_create(lv_layer_top());
+    lv_obj_set_style_text_color(s_touch_dbg, lv_color_hex(0x00ff00), LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(s_touch_dbg, &lv_font_montserrat_16, LV_STATE_DEFAULT);
+    lv_label_set_text(s_touch_dbg, "raw -,-\nscr -,-");
+    lv_obj_align(s_touch_dbg, LV_ALIGN_TOP_LEFT, 4, 4);
+    lvgl_port_unlock();
+#endif
 
     xTaskCreate(start_lvgl_demo, "lvgl_demo", 4096, NULL, 1, NULL);
 

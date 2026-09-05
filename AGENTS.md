@@ -53,6 +53,16 @@ Pinout is defined in `components/<board_name>/`:
 
 Note: Pin data skips Kconfig entirely and goes straight to C structs. Feature flags go through Kconfig → sdkconfig; pin assignments go through C code generation. Both are generated from the same YAML source by `bmgr`.
 
+### Integrating generated code
+
+Generated structs are the only source of pin/config values — never hardcode pins
+in C. At runtime, get a device with `esp_board_manager_get_device_handle("<name>", &handle)` and cast to its published handles struct. Two integration paths:
+
+- **Extant driver**: use an existing board-manager `type` (handlers live under `managed_components/.../esp_board_manager/devices/<type>/`). Board-specific tweaks go through a weak factory hook in `components/<board>/setup_device.c` — never edit generated files directly.
+- **Custom driver**: set `type: custom` in `board_devices.yaml`; bmgr emits a `dev_custom_<name>_config_t` struct with fields inferred from `config:`. Keep the driver in its own component (no board-manager dependency), register it from a board source file with `CUSTOM_DEVICE_IMPLEMENT(<name>, init, deinit)`, and reference the component in `dependencies:` via `${BOARD_PATH}/...` (flows into `gen_bmgr_codes/idf_component.yml`). Custom devices support at most 4 peripherals.
+
+Before writing a custom driver, check whether a `sub_type` handler already exists for the target `type` — some are shipped as stubs (e.g. `dev_lcd_touch` is I2C-only).
+
 ### Typical Configuration Workflow
 
 ```

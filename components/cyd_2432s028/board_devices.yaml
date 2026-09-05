@@ -85,3 +85,18 @@ devices:
         press_end: false
     peripherals:
       - gpio_name: gpio_boot_button
+
+  # XPT2046 resistive touch (bit-banged GPIO, not HW SPI)
+  - name: xpt2046_touch
+    chip: xpt2046
+    type: custom
+    dependencies:
+      xpt2046_touch:
+        require: public
+        path: "${BOARD_PATH}/../xpt2046_touch"
+    config:
+      clk_pin: 25
+      mosi_pin: 32
+      miso_pin: 39
+      cs_pin: 33
+      irq_pin: 36
