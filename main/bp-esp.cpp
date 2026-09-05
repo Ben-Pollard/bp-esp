@@ -8,6 +8,7 @@
 #include "lvgl.h"
 #include "demos/lv_demos.h"
 #include "xpt2046_touch.h"
+#include "src/debugging/sysmon/lv_sysmon.h"
 
 static const char *TAG = "bp-esp";
 
@@ -172,7 +173,8 @@ extern "C" void app_main(void)
     lvgl_port_display_cfg_t disp_cfg = {};
     disp_cfg.io_handle   = lcd_handles->io_handle;
     disp_cfg.panel_handle = lcd_handles->panel_handle;
-disp_cfg.buffer_size = 320 * 32;
+    disp_cfg.buffer_size = 320 * 32;
+    disp_cfg.double_buffer = true;
     disp_cfg.hres        = 320;
     disp_cfg.vres        = 240;
     disp_cfg.color_format = LV_COLOR_FORMAT_RGB565;
@@ -217,6 +219,8 @@ disp_cfg.buffer_size = 320 * 32;
     lv_obj_set_style_text_font(s_touch_dbg, &lv_font_montserrat_16, LV_STATE_DEFAULT);
     lv_label_set_text(s_touch_dbg, "raw -,-\nscr -,-");
     lv_obj_align(s_touch_dbg, LV_ALIGN_TOP_LEFT, 4, 4);
+    lv_sysmon_show_performance(disp);
+    lv_sysmon_show_memory(disp);
     lvgl_port_unlock();
 #endif
 

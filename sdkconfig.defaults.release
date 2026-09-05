@@ -18,3 +18,6 @@ CONFIG_HEAP_TRACING_OFF=y
 
 # Debug-only features off
 CONFIG_ESP_DEBUG_TOUCH_OVERLAY=n
+
+# LVGL perf/memory monitor off (debug overlay only)
+CONFIG_LV_USE_SYSMON=n

@@ -4,8 +4,12 @@
 # Logging
 CONFIG_LOG_DEFAULT_LEVEL_DEBUG=y
 
-# Compilation
-CONFIG_COMPILER_OPTIMIZATION_DEBUG=y
+# Compilation — -O2 for real rendering performance (stock debug default is -Og)
+CONFIG_COMPILER_OPTIMIZATION_PERF=y
+
+# CPU clock — ESP32 supports 240 MHz (default is 160 MHz)
+CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ_240=y
+CONFIG_ESP32_DEFAULT_CPU_FREQ_240=y
 
 # Debugging
 CONFIG_ESP_SYSTEM_PANIC_PRINT_HALT=y
@@ -25,6 +29,17 @@ CONFIG_HEAP_TRACING_STANDALONE=y
 CONFIG_LV_USE_DEMO_WIDGETS=y
 CONFIG_LV_FONT_MONTSERRAT_16=y
 CONFIG_LV_FONT_MONTSERRAT_48=y
+
+# LVGL perf/memory monitor (part of the debug overlay)
+CONFIG_LV_USE_SYSMON=y
+CONFIG_LV_USE_PERF_MONITOR=y
+CONFIG_LV_USE_MEM_MONITOR=y
+
+# Shadow cache — reuse blurred shadow sprites (the demo redraws identical shadows every scroll step)
+CONFIG_LV_DRAW_SW_SHADOW_CACHE_SIZE=64
+
+# LVGL internal heap — more headroom for the demo, fewer fragment stalls
+CONFIG_LV_MEM_SIZE_KILOBYTES=128
 
 # Debug-only features (enabled by debug preset, disabled by release preset)
 CONFIG_ESP_DEBUG_TOUCH_OVERLAY=y
