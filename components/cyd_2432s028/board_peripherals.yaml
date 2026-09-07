@@ -27,23 +27,71 @@ peripherals:
         quadhd_io_num: -1
         max_transfer_sz: 32000
 
-  # Display backlight (GPIO21, PWM capable via LEDC)
-  - name: gpio_lcd_bl
-    type: gpio
-    role: io
+  # Display backlight PWM (GPIO21, LEDC)
+  - name: ledc_backlight
+    type: ledc
+    role: none
     config:
-      pin: 21
-      mode: GPIO_MODE_OUTPUT
-      default_level: 1
+      gpio_num: 21
+      channel: LEDC_CHANNEL_0
+      timer_sel: LEDC_TIMER_0
+      freq_hz: 2000
+      duty: 0
+      duty_resolution: LEDC_TIMER_13_BIT
+      speed_mode: LEDC_LOW_SPEED_MODE
+      output_invert: false
 
-  # RGB LED (GPIO16, active low)
-  - name: gpio_led_rgb
-    type: gpio
-    role: io
+  # RGB LED — Red (GPIO4, active low, PWM)
+  - name: ledc_led_red
+    type: ledc
+    role: none
     config:
-      pin: 16
-      mode: GPIO_MODE_OUTPUT
-      default_level: 1
+      gpio_num: 4
+      channel: LEDC_CHANNEL_1
+      timer_sel: LEDC_TIMER_0
+      freq_hz: 2000
+      duty: 0
+      duty_resolution: LEDC_TIMER_13_BIT
+      speed_mode: LEDC_LOW_SPEED_MODE
+      output_invert: true
+
+  # RGB LED — Green (GPIO16, active low, PWM)
+  - name: ledc_led_green
+    type: ledc
+    role: none
+    config:
+      gpio_num: 16
+      channel: LEDC_CHANNEL_2
+      timer_sel: LEDC_TIMER_0
+      freq_hz: 2000
+      duty: 0
+      duty_resolution: LEDC_TIMER_13_BIT
+      speed_mode: LEDC_LOW_SPEED_MODE
+      output_invert: true
+
+  # RGB LED — Blue (GPIO17, active low, PWM)
+  - name: ledc_led_blue
+    type: ledc
+    role: none
+    config:
+      gpio_num: 17
+      channel: LEDC_CHANNEL_3
+      timer_sel: LEDC_TIMER_0
+      freq_hz: 2000
+      duty: 0
+      duty_resolution: LEDC_TIMER_13_BIT
+      speed_mode: LEDC_LOW_SPEED_MODE
+      output_invert: true
+
+  # LDR (photoresistor, GT36516) on ADC1_CH6 (GPIO34)
+  - name: adc_light
+    type: adc
+    role: oneshot
+    config:
+      unit_id: ADC_UNIT_1
+      channel_id: 6
+      atten: ADC_ATTEN_DB_12
+      bit_width: ADC_BITWIDTH_12
 
   # BOOT button (GPIO0, active low with internal pull-up)
   - name: gpio_boot_button

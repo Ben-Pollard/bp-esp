@@ -100,3 +100,39 @@ devices:
       miso_pin: 39
       cs_pin: 33
       irq_pin: 36
+
+  # LCD backlight brightness (PWM via LEDC)
+  - name: lcd_brightness
+    type: ledc_ctrl
+    version: default
+    config:
+      default_percent: 100
+    peripherals:
+      - ledc_name: ledc_backlight
+
+  # RGB LED — Red channel
+  - name: led_red
+    type: ledc_ctrl
+    version: default
+    config:
+      default_percent: 0
+    peripherals:
+      - ledc_name: ledc_led_red
+
+  # RGB LED — Green channel
+  - name: led_green
+    type: ledc_ctrl
+    version: default
+    config:
+      default_percent: 0
+    peripherals:
+      - ledc_name: ledc_led_green
+
+  # RGB LED — Blue channel
+  - name: led_blue
+    type: ledc_ctrl
+    version: default
+    config:
+      default_percent: 0
+    peripherals:
+      - ledc_name: ledc_led_blue
