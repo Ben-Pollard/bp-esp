@@ -40,6 +40,7 @@ extern "C" void app_main(void)
     ESP_LOGI(TAG, "bp-esp starting...");
     esp_log_level_set("spi_master", ESP_LOG_WARN);
     esp_log_level_set("esp_lcd", ESP_LOG_WARN);
+    esp_log_level_set("ledc", ESP_LOG_WARN);
 
     BoardAdapter board;
     if (!board.init()) return;

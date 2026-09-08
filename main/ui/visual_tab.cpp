@@ -92,7 +92,7 @@ void create_visual_tab(lv_obj_t *parent)
         s_particles[i].vy = (float)(esp_random() % 200 - 100) * 0.02f;
         s_particles[i].hue = (float)(esp_random() % 360);
     }
-    lv_timer_t *pt = lv_timer_create(particle_timer_cb, 33, NULL);
+    lv_timer_t *pt = lv_timer_create(particle_timer_cb, 66, NULL);
     lv_timer_set_repeat_count(pt, -1);
 
     lv_obj_t *hint = lv_label_create(parent);
