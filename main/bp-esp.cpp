@@ -16,10 +16,10 @@
 static const char *TAG = "bp-esp";
 
 /* ---- Touch constants ---- */
-#define TOUCH_RAW_X_MIN  750
-#define TOUCH_RAW_X_MAX  2850
-#define TOUCH_RAW_Y_MIN  1000
-#define TOUCH_RAW_Y_MAX  3500
+#define TOUCH_RAW_X_MIN  167
+#define TOUCH_RAW_X_MAX  3725
+#define TOUCH_RAW_Y_MIN  242
+#define TOUCH_RAW_Y_MAX  3776
 
 /* ---- LEDC ---- */
 #define LEDC_RES  (LEDC_TIMER_13_BIT)
@@ -455,6 +455,7 @@ static void start_main_ui(void *arg)
 
     lv_obj_t *tv = lv_tabview_create(lv_screen_active());
     lv_obj_set_size(tv, lv_pct(100), lv_pct(100));
+    lv_obj_remove_flag(lv_tabview_get_content(tv), LV_OBJ_FLAG_SCROLLABLE);
 
     lv_obj_t *tab_ctrl = lv_tabview_add_tab(tv, "Controls");
     lv_obj_t *tab_vis  = lv_tabview_add_tab(tv, "Visual");
@@ -521,8 +522,19 @@ extern "C" void app_main(void)
 
     /* RGB LED handles */
     void *h = NULL;
-    if (esp_board_manager_get_device_handle("led_red", &h) == ESP_OK)
+    if (esp_board_manager_get_device_handle("led_red", &h) == ESP_OK) {
         s_led_red = (periph_ledc_handle_t *)h;
+        /* ILI9341 reset sequence overwrites GPIO4 routing; re-route LEDC signal */
+        ledc_channel_config_t red_re = {};
+        red_re.gpio_num = 4;
+        red_re.channel = s_led_red->channel;
+        red_re.timer_sel = LEDC_TIMER_0;
+        red_re.speed_mode = s_led_red->speed_mode;
+        red_re.duty = 0;
+        red_re.hpoint = 0;
+        red_re.flags.output_invert = 1;
+        ledc_channel_config(&red_re);
+    }
     if (esp_board_manager_get_device_handle("led_green", &h) == ESP_OK)
         s_led_green = (periph_ledc_handle_t *)h;
     if (esp_board_manager_get_device_handle("led_blue", &h) == ESP_OK)

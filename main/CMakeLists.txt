@@ -1,3 +1,11 @@
-idf_component_register(SRCS "bp-esp.cpp"
+idf_component_register(SRCS "app_main.cpp"
+                            "supervisor.cpp"
+                            "hardware/board_adapter.cpp"
+                            "logic/brightness.cpp"
+                            "ui/screens.cpp"
+                            "ui/splash.cpp"
+                            "ui/controls_tab.cpp"
+                            "ui/visual_tab.cpp"
+                            "ui/debug_overlay.cpp"
                     INCLUDE_DIRS "."
                     REQUIRES xpt2046_touch)

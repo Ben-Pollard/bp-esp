@@ -1,6 +1,5 @@
 #include "xpt2046_touch.h"
 #include "esp_log.h"
-#include "esp_timer.h"
 #include "driver/gpio.h"
 #include "esp_rom_sys.h"
 
@@ -13,8 +12,6 @@ static const char *TAG = "XPT2046";
 
 #define TOUCH_Z_THRESHOLD  100
 #define SAMPLE_DELAY_US    5
-
-static int64_t s_last_dbg = 0;
 
 static void cs_select(const xpt2046_touch_handle_t *h)
 {
@@ -115,8 +112,6 @@ bool xpt2046_touch_read(xpt2046_touch_handle_t *handle, uint16_t *x, uint16_t *y
         return false;
     }
 
-    int irq_level = gpio_get_level(handle->cfg.irq_pin);
-
     cs_select(handle);
 
     uint16_t z1 = read_channel(handle, CMD_READ_Z1);
@@ -134,13 +129,6 @@ bool xpt2046_touch_read(xpt2046_touch_handle_t *handle, uint16_t *x, uint16_t *y
     }
 
     cs_deselect(handle);
-
-    int64_t now = esp_timer_get_time();
-    if (now - s_last_dbg >= 500000) {
-        s_last_dbg = now;
-        ESP_LOGI(TAG, "irq=%d z1=%u z2=%u z=%u pressed=%d x=%u y=%u",
-                 irq_level, z1, z2, z, pressed, x_raw, y_raw);
-    }
 
     if (!pressed) {
         return false;

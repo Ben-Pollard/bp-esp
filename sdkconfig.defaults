@@ -41,5 +41,11 @@ CONFIG_LV_DRAW_SW_SHADOW_CACHE_SIZE=64
 # LVGL internal heap — more headroom for the demo, fewer fragment stalls
 CONFIG_LV_MEM_SIZE_KILOBYTES=128
 
-# Debug-only features (enabled by debug preset, disabled by release preset)
+# Debug overlay config — gated by preset
 CONFIG_ESP_DEBUG_TOUCH_OVERLAY=y
+
+# Task watchdog — panic and reboot on hang
+CONFIG_ESP_TASK_WDT=y
+CONFIG_ESP_TASK_WDT_INIT=y
+CONFIG_ESP_TASK_WDT_PANIC=y
+CONFIG_ESP_TASK_WDT_TIMEOUT_S=10
