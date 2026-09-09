@@ -8,7 +8,6 @@ typedef struct {
     lv_obj_t *obj;
     float x, y;
     float vx, vy;
-    float hue;
 } particle_t;
 
 static particle_t s_particles[PARTICLE_COUNT];
@@ -64,16 +63,13 @@ static void particle_timer_cb(lv_timer_t *tm)
         if (s_particles[i].y < -10) s_particles[i].y = 210;
         if (s_particles[i].y > 210) s_particles[i].y = -10;
         lv_obj_set_pos(s_particles[i].obj, (int)s_particles[i].x, (int)s_particles[i].y);
-        float h = s_particles[i].hue;
-        if (h >= 360.0f) h -= 360.0f;
-        lv_color_t c = lv_color_hsv_to_rgb((int)h, 180, 255);
-        lv_obj_set_style_bg_color(s_particles[i].obj, c, 0);
-        s_particles[i].hue += 0.3f + (float)(i % 3) * 0.1f;
     }
 }
 
 void create_visual_tab(lv_obj_t *parent)
 {
+    lv_obj_set_scrollbar_mode(parent, LV_SCROLLBAR_MODE_OFF);
+    lv_obj_remove_flag(parent, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_set_style_bg_color(parent, lv_color_hex(0x040810), 0);
     lv_obj_set_style_bg_opa(parent, LV_OPA_COVER, 0);
 
@@ -85,19 +81,21 @@ void create_visual_tab(lv_obj_t *parent)
         lv_obj_set_style_radius(o, LV_RADIUS_CIRCLE, 0);
         lv_obj_set_style_border_width(o, 0, 0);
         lv_obj_set_size(o, 8, 8);
+        lv_color_t c = lv_color_hsv_to_rgb((int)(esp_random() % 360), 180, 255);
+        lv_obj_set_style_bg_color(o, c, 0);
         s_particles[i].obj = o;
-        s_particles[i].x  = (float)(esp_random() % 310);
-        s_particles[i].y  = (float)(esp_random() % 180 + 10);
-        s_particles[i].vx = (float)(esp_random() % 200 - 100) * 0.02f;
-        s_particles[i].vy = (float)(esp_random() % 200 - 100) * 0.02f;
-        s_particles[i].hue = (float)(esp_random() % 360);
+        s_particles[i].x   = (float)(esp_random() % 310);
+        s_particles[i].y   = (float)(esp_random() % 180 + 10);
+        s_particles[i].vx  = (float)(esp_random() % 200 - 100) * 0.02f;
+        s_particles[i].vy  = (float)(esp_random() % 200 - 100) * 0.02f;
+        lv_obj_set_pos(o, (int)s_particles[i].x, (int)s_particles[i].y);
     }
     lv_timer_t *pt = lv_timer_create(particle_timer_cb, 66, NULL);
     lv_timer_set_repeat_count(pt, -1);
 
     lv_obj_t *hint = lv_label_create(parent);
     lv_label_set_text(hint, "touch the void");
-    lv_obj_set_style_text_font(hint, &lv_font_montserrat_16, 0);
+    lv_obj_set_style_text_font(hint, &lv_font_montserrat_14, 0);
     lv_obj_set_style_text_color(hint, lv_color_hex(0x1a2a3a), 0);
     lv_obj_align(hint, LV_ALIGN_BOTTOM_MID, 0, -4);
 }
