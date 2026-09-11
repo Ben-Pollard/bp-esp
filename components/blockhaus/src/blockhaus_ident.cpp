@@ -232,7 +232,7 @@ void blockhaus_ident_show(lv_obj_t *scr, const char *name, blockhaus_ident_done_
         lv_obj_remove_style_all(b);
         lv_obj_set_style_bg_opa(b, LV_OPA_COVER, 0);
         lv_obj_set_style_border_width(b, 0, 0);
-        lv_obj_set_style_radius(b, 2, 0);
+        lv_obj_set_style_radius(b, BLOCKHAUS_CORNER, 0);
         lv_obj_set_size(b, 20, 20);
 
         float dx = (float)s_die5[i].x - SPIRAL_CX;
@@ -322,7 +322,7 @@ blockhaus_signal_strip_handle_t blockhaus_signal_strip_create(lv_obj_t *parent, 
         lv_obj_remove_style_all(b);
         lv_obj_set_style_bg_opa(b, LV_OPA_COVER, 0);
         lv_obj_set_style_border_width(b, 0, 0);
-        lv_obj_set_style_radius(b, 1, 0);
+        lv_obj_set_style_radius(b, BLOCKHAUS_CORNER, 0);
         lv_obj_set_size(b, 12, 18);
         lv_obj_set_style_bg_color(b, lv_color_hex(blockhaus_resting(hue)), 0);
         s->blocks[i] = b;
@@ -354,7 +354,7 @@ void blockhaus_signal_strip_set_blocks(blockhaus_signal_strip_handle_t strip, in
         lv_obj_remove_style_all(b);
         lv_obj_set_style_bg_opa(b, LV_OPA_COVER, 0);
         lv_obj_set_style_border_width(b, 0, 0);
-        lv_obj_set_style_radius(b, 1, 0);
+        lv_obj_set_style_radius(b, BLOCKHAUS_CORNER, 0);
         lv_obj_set_size(b, 12, 18);
         lv_obj_set_style_bg_color(b, lv_color_hex(blockhaus_resting(strip->hue)), 0);
         lv_obj_t **newb = (lv_obj_t **)realloc(strip->blocks, sizeof(lv_obj_t *) * (size_t)(strip->count + 1));

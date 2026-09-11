@@ -67,3 +67,8 @@ blockhaus_color_t blockhaus_bg(void)
 {
     return RGB(0x11, 0x15, 0x1A);
 }
+
+blockhaus_color_t blockhaus_surface(void)
+{
+    return RGB(0x04, 0x08, 0x10);
+}

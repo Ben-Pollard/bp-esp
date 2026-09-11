@@ -1,6 +1,8 @@
 #include "blockhaus_indicators.h"
 #include "blockhaus_typography.h"
+#include "blockhaus_shapes.h"
 #include <cstdlib>
+#include <cstddef>
 
 struct blockhaus_indicator_t {
     lv_obj_t *obj;
@@ -40,7 +42,7 @@ blockhaus_indicator_handle_t blockhaus_indicator_create(lv_obj_t *parent, int hu
 
     ind->obj = lv_obj_create(parent);
     lv_obj_remove_style_all(ind->obj);
-    lv_obj_set_style_radius(ind->obj, 2, 0);
+    lv_obj_set_style_radius(ind->obj, BLOCKHAUS_CORNER, 0);
     lv_obj_set_style_border_width(ind->obj, 0, 0);
     lv_obj_set_style_bg_opa(ind->obj, LV_OPA_COVER, 0);
     lv_obj_set_size(ind->obj, 14, 14);

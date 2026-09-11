@@ -60,27 +60,27 @@ static void main_ui_timer_cb(lv_timer_t *tm)
     lv_obj_set_style_pad_column(bar, 2, 0);
     lv_obj_set_style_pad_all(bar, 3, 0);
 
-    lv_obj_t *btn_c = lv_btn_create(bar);
-    lv_obj_set_size(btn_c, 100, 22);
+    lv_obj_t *btn_c = blockhaus_block_create(bar, 100, 22);
     lv_obj_set_style_bg_color(btn_c, lv_color_hex(blockhaus_active(BLOCKHAUS_HUE_MUSTARD)), 0);
+    lv_obj_add_flag(btn_c, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_t *lbl_c = lv_label_create(btn_c);
     lv_label_set_text(lbl_c, "Controls");
     lv_obj_set_style_text_font(lbl_c, blockhaus_font_mono(14), 0);
     lv_obj_center(lbl_c);
     lv_obj_add_event_cb(btn_c, show_controls, LV_EVENT_CLICKED, NULL);
 
-    lv_obj_t *btn_v = lv_btn_create(bar);
-    lv_obj_set_size(btn_v, 100, 22);
+    lv_obj_t *btn_v = blockhaus_block_create(bar, 100, 22);
     lv_obj_set_style_bg_color(btn_v, lv_color_hex(blockhaus_resting(BLOCKHAUS_HUE_NEUTRAL)), 0);
+    lv_obj_add_flag(btn_v, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_t *lbl_v = lv_label_create(btn_v);
     lv_label_set_text(lbl_v, "Visual");
     lv_obj_set_style_text_font(lbl_v, blockhaus_font_mono(14), 0);
     lv_obj_center(lbl_v);
     lv_obj_add_event_cb(btn_v, show_visual, LV_EVENT_CLICKED, NULL);
 
-    lv_obj_t *btn_s = lv_btn_create(bar);
-    lv_obj_set_size(btn_s, 100, 22);
+    lv_obj_t *btn_s = blockhaus_block_create(bar, 100, 22);
     lv_obj_set_style_bg_color(btn_s, lv_color_hex(blockhaus_resting(BLOCKHAUS_HUE_NEUTRAL)), 0);
+    lv_obj_add_flag(btn_s, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_t *lbl_s = lv_label_create(btn_s);
     lv_label_set_text(lbl_s, "Signals");
     lv_obj_set_style_text_font(lbl_s, blockhaus_font_mono(14), 0);
@@ -94,32 +94,26 @@ static void main_ui_timer_cb(lv_timer_t *tm)
     int content_y = 30;
     int content_h = 240 - 30;
 
-    s_controls = lv_obj_create(scr);
-    lv_obj_remove_style_all(s_controls);
+    s_controls = blockhaus_frame_create(scr, 320, content_h);
     lv_obj_set_scrollbar_mode(s_controls, LV_SCROLLBAR_MODE_OFF);
     lv_obj_remove_flag(s_controls, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_set_pos(s_controls, 0, content_y);
-    lv_obj_set_size(s_controls, 320, content_h);
     lv_obj_set_flex_flow(s_controls, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_style_pad_all(s_controls, 4, 0);
     lv_obj_set_style_pad_row(s_controls, 2, 0);
     create_controls_tab(s_controls, sup);
 
-    s_visual = lv_obj_create(scr);
-    lv_obj_remove_style_all(s_visual);
+    s_visual = blockhaus_frame_create(scr, 320, content_h);
     lv_obj_set_scrollbar_mode(s_visual, LV_SCROLLBAR_MODE_OFF);
     lv_obj_remove_flag(s_visual, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_set_pos(s_visual, 0, content_y);
-    lv_obj_set_size(s_visual, 320, content_h);
     lv_obj_add_flag(s_visual, LV_OBJ_FLAG_HIDDEN);
     create_visual_tab(s_visual);
 
-    s_signals = lv_obj_create(scr);
-    lv_obj_remove_style_all(s_signals);
+    s_signals = blockhaus_frame_create(scr, 320, content_h);
     lv_obj_set_scrollbar_mode(s_signals, LV_SCROLLBAR_MODE_OFF);
     lv_obj_remove_flag(s_signals, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_set_pos(s_signals, 0, content_y);
-    lv_obj_set_size(s_signals, 320, content_h);
     lv_obj_add_flag(s_signals, LV_OBJ_FLAG_HIDDEN);
     create_signals_tab(s_signals);
 

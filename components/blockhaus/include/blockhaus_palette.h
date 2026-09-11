@@ -25,6 +25,7 @@ blockhaus_color_t blockhaus_spectrum_active(int index);
 int         blockhaus_spectrum_count(void);
 
 blockhaus_color_t blockhaus_bg(void);
+blockhaus_color_t blockhaus_surface(void);
 
 #ifdef __cplusplus
 }

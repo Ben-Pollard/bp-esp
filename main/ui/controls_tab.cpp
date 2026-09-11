@@ -1,12 +1,20 @@
 #include "controls_tab.h"
 #include "supervisor.h"
 #include "blockhaus.h"
+#include <cstdlib>
 
 static blockhaus_indicator_handle_t s_ind_r = NULL;
 static blockhaus_indicator_handle_t s_ind_g = NULL;
 static blockhaus_indicator_handle_t s_ind_b = NULL;
 static lv_obj_t *s_ldr_label = NULL;
 static uint8_t s_rgb_val[3] = {0, 0, 0};
+
+#define SLIDER_BLOCKS 10
+
+typedef struct {
+    lv_obj_t *value_lbl;
+    Supervisor *sup;
+} slider_ctx_t;
 
 static void update_indicators(void)
 {
@@ -19,44 +27,66 @@ static void update_indicators(void)
     blockhaus_indicator_set_signal(s_ind_b, sig_b);
 }
 
-static void led_slider_r(lv_event_t *e)
+static void led_slider_r(int value, void *user_data)
 {
-    lv_obj_t *sl = (lv_obj_t *)lv_event_get_target(e);
-    Supervisor *sup = (Supervisor *)lv_event_get_user_data(e);
-    s_rgb_val[0] = (uint8_t)lv_slider_get_value(sl);
+    Supervisor *sup = (Supervisor *)user_data;
+    s_rgb_val[0] = (uint8_t)value;
     sup->submit({CommandKind::SetRgb, s_rgb_val[0], s_rgb_val[1], s_rgb_val[2]});
     update_indicators();
 }
 
-static void led_slider_g(lv_event_t *e)
+static void led_slider_g(int value, void *user_data)
 {
-    lv_obj_t *sl = (lv_obj_t *)lv_event_get_target(e);
-    Supervisor *sup = (Supervisor *)lv_event_get_user_data(e);
-    s_rgb_val[1] = (uint8_t)lv_slider_get_value(sl);
+    Supervisor *sup = (Supervisor *)user_data;
+    s_rgb_val[1] = (uint8_t)value;
     sup->submit({CommandKind::SetRgb, s_rgb_val[0], s_rgb_val[1], s_rgb_val[2]});
     update_indicators();
 }
 
-static void led_slider_b(lv_event_t *e)
+static void led_slider_b(int value, void *user_data)
 {
-    lv_obj_t *sl = (lv_obj_t *)lv_event_get_target(e);
-    Supervisor *sup = (Supervisor *)lv_event_get_user_data(e);
-    s_rgb_val[2] = (uint8_t)lv_slider_get_value(sl);
+    Supervisor *sup = (Supervisor *)user_data;
+    s_rgb_val[2] = (uint8_t)value;
     sup->submit({CommandKind::SetRgb, s_rgb_val[0], s_rgb_val[1], s_rgb_val[2]});
     update_indicators();
 }
 
-static void bl_slider(lv_event_t *e)
+static void bl_slider(int value, void *user_data)
 {
-    lv_obj_t *sl = (lv_obj_t *)lv_event_get_target(e);
-    Supervisor *sup = (Supervisor *)lv_event_get_user_data(e);
-    uint8_t v = (uint8_t)lv_slider_get_value(sl);
-    sup->submit({CommandKind::SetBacklight, v, 0, 0});
+    Supervisor *sup = (Supervisor *)user_data;
+    sup->submit({CommandKind::SetBacklight, (uint8_t)value, 0, 0});
 }
 
-static lv_obj_t *create_slider_row(lv_obj_t *parent, const char *label_text,
-                                    lv_color_t color, int initial,
-                                    lv_event_cb_t cb, void *user_data)
+static void on_rgb_r(int value, void *user_data)
+{
+    slider_ctx_t *ctx = (slider_ctx_t *)user_data;
+    lv_label_set_text_fmt(ctx->value_lbl, "%d%%", value);
+    led_slider_r(value, ctx->sup);
+}
+
+static void on_rgb_g(int value, void *user_data)
+{
+    slider_ctx_t *ctx = (slider_ctx_t *)user_data;
+    lv_label_set_text_fmt(ctx->value_lbl, "%d%%", value);
+    led_slider_g(value, ctx->sup);
+}
+
+static void on_rgb_b(int value, void *user_data)
+{
+    slider_ctx_t *ctx = (slider_ctx_t *)user_data;
+    lv_label_set_text_fmt(ctx->value_lbl, "%d%%", value);
+    led_slider_b(value, ctx->sup);
+}
+
+static void on_bl(int value, void *user_data)
+{
+    slider_ctx_t *ctx = (slider_ctx_t *)user_data;
+    lv_label_set_text_fmt(ctx->value_lbl, "%d%%", value);
+    bl_slider(value, ctx->sup);
+}
+
+static void create_slider_row(lv_obj_t *parent, const char *label_text, int hue, int initial,
+                              blockhaus_slider_cb_t cb, Supervisor *sup)
 {
     lv_obj_t *row = lv_obj_create(parent);
     lv_obj_remove_style_all(row);
@@ -68,28 +98,22 @@ static lv_obj_t *create_slider_row(lv_obj_t *parent, const char *label_text,
     lv_obj_t *lbl = lv_label_create(row);
     lv_label_set_text(lbl, label_text);
     lv_obj_set_style_text_font(lbl, blockhaus_font_mono(14), 0);
+    lv_obj_set_style_text_color(lbl, lv_color_hex(blockhaus_active(hue)), 0);
 
-    lv_obj_t *sl = lv_slider_create(row);
-    lv_obj_set_width(sl, 180);
-    lv_slider_set_range(sl, 0, 100);
-    lv_slider_set_value(sl, initial, LV_ANIM_OFF);
-    lv_obj_set_style_bg_color(sl, lv_color_darken(color, 100), LV_PART_MAIN);
-    lv_obj_set_style_bg_color(sl, color, LV_PART_INDICATOR);
-    lv_obj_add_event_cb(sl, cb, LV_EVENT_VALUE_CHANGED, user_data);
+    blockhaus_slider_handle_t sl = blockhaus_slider_create(row, SLIDER_BLOCKS, 15, 12, 3, hue);
+    blockhaus_slider_set_range(sl, 0, 100);
+    blockhaus_slider_set_value(sl, initial);
 
     lv_obj_t *val_lbl = lv_label_create(row);
     lv_label_set_text_fmt(val_lbl, "%d%%", initial);
     lv_obj_set_style_text_font(val_lbl, blockhaus_font_mono(14), 0);
-    lv_obj_set_style_text_color(val_lbl, color, 0);
+    lv_obj_set_style_text_color(val_lbl, lv_color_hex(blockhaus_active(hue)), 0);
 
-    lv_obj_add_event_cb(sl, [](lv_event_t *ev) {
-        lv_obj_t *target = (lv_obj_t *)lv_event_get_target(ev);
-        lv_obj_t *parent_row = lv_obj_get_parent(target);
-        lv_obj_t *val_lbl = lv_obj_get_child(parent_row, 2);
-        lv_label_set_text_fmt(val_lbl, "%d%%", (int)lv_slider_get_value(target));
-    }, LV_EVENT_VALUE_CHANGED, NULL);
-
-    return row;
+    slider_ctx_t *ctx = (slider_ctx_t *)malloc(sizeof(slider_ctx_t));
+    if (!ctx) return;
+    ctx->value_lbl = val_lbl;
+    ctx->sup = sup;
+    blockhaus_slider_set_callback(sl, cb, ctx);
 }
 
 static void poll_timer_cb(lv_timer_t *tm)
@@ -133,10 +157,10 @@ void create_controls_tab(lv_obj_t *parent, Supervisor *sup)
         child = lv_obj_get_child(ind_row, (uint32_t)i);
     }
 
-    create_slider_row(parent, "R", lv_color_hex(0xff3333), 0, led_slider_r, sup);
-    create_slider_row(parent, "G", lv_color_hex(0x33ff33), 0, led_slider_g, sup);
-    create_slider_row(parent, "B", lv_color_hex(0x3333ff), 0, led_slider_b, sup);
-    create_slider_row(parent, "BL", lv_color_hex(0xffaa00), 100, bl_slider, sup);
+    create_slider_row(parent, "R", BLOCKHAUS_HUE_MAROON, 0, on_rgb_r, sup);
+    create_slider_row(parent, "G", BLOCKHAUS_HUE_FOREST, 0, on_rgb_g, sup);
+    create_slider_row(parent, "B", BLOCKHAUS_HUE_NAVY, 0, on_rgb_b, sup);
+    create_slider_row(parent, "BL", BLOCKHAUS_HUE_MUSTARD, 100, on_bl, sup);
 
     s_ldr_label = lv_label_create(parent);
     lv_label_set_text(s_ldr_label, "LDR: ---  adj ---  BL ---%");

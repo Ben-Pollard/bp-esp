@@ -6,4 +6,5 @@
 #include "blockhaus_motion.h"
 #include "blockhaus_indicators.h"
 #include "blockhaus_ident.h"
+#include "blockhaus_slider.h"
 #include "blockhaus_typography.h"

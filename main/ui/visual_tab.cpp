@@ -71,7 +71,7 @@ void create_visual_tab(lv_obj_t *parent)
 {
     lv_obj_set_scrollbar_mode(parent, LV_SCROLLBAR_MODE_OFF);
     lv_obj_remove_flag(parent, LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_set_style_bg_color(parent, lv_color_hex(0x040810), 0);
+    lv_obj_set_style_bg_color(parent, lv_color_hex(blockhaus_surface()), 0);
     lv_obj_set_style_bg_opa(parent, LV_OPA_COVER, 0);
 
     s_vis_cont = parent;
