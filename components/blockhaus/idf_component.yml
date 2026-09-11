@@ -1,0 +1,5 @@
+name: blockhaus
+version: 0.1.0
+description: Blockhaus design language — palette, typography, motion, and ident primitives for LVGL UIs.
+dependencies:
+  lvgl/lvgl: '*'

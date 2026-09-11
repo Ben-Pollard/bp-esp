@@ -1,0 +1,19 @@
+menu "Blockhaus"
+
+    config BLOCKHAUS_FONT_MONO
+        bool "JetBrains Mono font for identity typography"
+        default y
+        help
+            When enabled, JetBrains Mono font glyphs are linked (adds ~60 KB
+            to flash). Disable to save space if the identity component is used
+            without the typography layer.
+
+    config BLOCKHAUS_FONT_MONO_SIZE
+        int "Main font size (px)"
+        range 8 72
+        default 40
+        help
+            Point size of the mono font used for the wordmark.
+            Generated at build time; re-run font generation if changed.
+
+endmenu

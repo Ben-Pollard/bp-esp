@@ -170,6 +170,6 @@ direct_dependencies:
 - idf
 - lvgl/lvgl
 - xpt2046_touch
-manifest_hash: 640e7314b01abdc42d45aac0b3f0b09147e07fe9eebf6fc7b8980bcdd84ca3d4
+manifest_hash: 8143f5f8c8c4d4a2a0f0997c42dea58ed90610ba311f25afbf5786c0ac3af511
 target: esp32
 version: 3.0.0

@@ -1,4 +1,5 @@
 #include "visual_tab.h"
+#include "blockhaus.h"
 #include "esp_random.h"
 #include <cmath>
 
@@ -81,8 +82,7 @@ void create_visual_tab(lv_obj_t *parent)
         lv_obj_set_style_radius(o, LV_RADIUS_CIRCLE, 0);
         lv_obj_set_style_border_width(o, 0, 0);
         lv_obj_set_size(o, 8, 8);
-        lv_color_t c = lv_color_hsv_to_rgb((int)(esp_random() % 360), 180, 255);
-        lv_obj_set_style_bg_color(o, c, 0);
+        lv_obj_set_style_bg_color(o, lv_color_hex(blockhaus_spectrum_active(i % BLOCKHAUS_HUE_COUNT)), 0);
         s_particles[i].obj = o;
         s_particles[i].x   = (float)(esp_random() % 310);
         s_particles[i].y   = (float)(esp_random() % 180 + 10);
@@ -95,7 +95,7 @@ void create_visual_tab(lv_obj_t *parent)
 
     lv_obj_t *hint = lv_label_create(parent);
     lv_label_set_text(hint, "touch the void");
-    lv_obj_set_style_text_font(hint, &lv_font_montserrat_14, 0);
-    lv_obj_set_style_text_color(hint, lv_color_hex(0x1a2a3a), 0);
+    lv_obj_set_style_text_font(hint, blockhaus_font_mono(14), 0);
+    lv_obj_set_style_text_color(hint, lv_color_hex(0x5A7D9A), 0);
     lv_obj_align(hint, LV_ALIGN_BOTTOM_MID, 0, -4);
 }

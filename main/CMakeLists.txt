@@ -7,5 +7,6 @@ idf_component_register(SRCS "app_main.cpp"
                             "ui/controls_tab.cpp"
                             "ui/visual_tab.cpp"
                             "ui/debug_overlay.cpp"
+                    "ui/signals_tab.cpp"
                     INCLUDE_DIRS "."
-                    REQUIRES xpt2046_touch)
+                    REQUIRES xpt2046_touch blockhaus)

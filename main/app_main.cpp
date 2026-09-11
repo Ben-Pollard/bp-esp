@@ -21,6 +21,11 @@ static const char *TAG = "bp-esp";
 
 static xpt2046_touch_handle_t *s_touch = NULL;
 
+struct SplashDoneParams {
+    lv_display_t *disp;
+    Supervisor *sup;
+};
+
 static void touch_read_cb(lv_indev_t *indev, lv_indev_data_t *data)
 {
     uint16_t raw_x = 0, raw_y = 0;
@@ -33,6 +38,17 @@ static void touch_read_cb(lv_indev_t *indev, lv_indev_data_t *data)
     } else {
         data->state = LV_INDEV_STATE_REL;
     }
+}
+
+static void splash_done_cb(void *data)
+{
+    SplashDoneParams *p = (SplashDoneParams *)data;
+    lvgl_port_lock(0);
+    ESP_LOGI(TAG, "Splash done, building main UI");
+    setup_debug_overlay(p->disp, p->sup);
+    start_main_ui(p->sup, 0);
+    lvgl_port_unlock();
+    free(p);
 }
 
 extern "C" void app_main(void)
@@ -83,13 +99,14 @@ extern "C" void app_main(void)
     Supervisor supervisor;
     if (!supervisor.start(board)) { ESP_LOGE(TAG, "Supervisor start failed"); return; }
 
-    lvgl_port_lock(0);
-    show_splash(lv_screen_active());
-    lvgl_port_unlock();
+    SplashDoneParams *p = (SplashDoneParams *)malloc(sizeof(SplashDoneParams));
+    if (p) {
+        p->disp = disp;
+        p->sup = &supervisor;
+    }
 
     lvgl_port_lock(0);
-    setup_debug_overlay(disp, &supervisor);
-    start_main_ui(&supervisor);
+    show_splash(lv_screen_active(), splash_done_cb, p);
     lvgl_port_unlock();
 
     ESP_LOGI(TAG, "Running");
