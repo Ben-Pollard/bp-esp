@@ -1,35 +1,27 @@
 #include "blockhaus_indicators.h"
 #include "blockhaus_typography.h"
 #include "blockhaus_shapes.h"
+#include "blockhaus_signals.h"
+#include "blockhaus_motion.h"
 #include <cstdlib>
 #include <cstddef>
 
+/* An indicator is a single block whose colour and motion encode a signal,
+ * derived entirely from the shared signal table (blockhaus_signals):
+ *   idle    -> resting hue, static
+ *   active  -> blink resting<->active of the object hue
+ *   warning -> blink mustard
+ *   success -> hold forest (no motion; "done")
+ *   fault   -> blink maroon, fast
+ * The colour for a single block and for a strip come from the same hue and
+ * tempo, so a block and a strip showing the same signal always agree. */
 struct blockhaus_indicator_t {
     lv_obj_t *obj;
     lv_obj_t *label;
     int hue;
     int signal;
-    lv_timer_t *pulse_timer;
-    int pulse_count;
+    blockhaus_blink_handle_t blink;
 };
-
-static void indicator_pulse_cb(lv_timer_t *tm)
-{
-    blockhaus_indicator_t *ind = (blockhaus_indicator_t *)lv_timer_get_user_data(tm);
-    ind->pulse_count++;
-    bool on = (ind->pulse_count % 2) == 0;
-
-    if (ind->signal == BLOCKHAUS_SIGNAL_WARNING) {
-        blockhaus_color_t c = on ? blockhaus_active(BLOCKHAUS_HUE_MUSTARD) : blockhaus_resting(ind->hue);
-        lv_obj_set_style_bg_color(ind->obj, lv_color_hex(c), 0);
-    } else if (ind->signal == BLOCKHAUS_SIGNAL_CRITICAL) {
-        blockhaus_color_t c = on ? blockhaus_active(BLOCKHAUS_HUE_MAROON) : blockhaus_resting(ind->hue);
-        lv_obj_set_style_bg_color(ind->obj, lv_color_hex(c), 0);
-    } else {
-        blockhaus_color_t c = on ? blockhaus_active(ind->hue) : blockhaus_resting(ind->hue);
-        lv_obj_set_style_bg_color(ind->obj, lv_color_hex(c), 0);
-    }
-}
 
 blockhaus_indicator_handle_t blockhaus_indicator_create(lv_obj_t *parent, int hue)
 {
@@ -37,43 +29,36 @@ blockhaus_indicator_handle_t blockhaus_indicator_create(lv_obj_t *parent, int hu
     if (!ind) return NULL;
     ind->hue = hue;
     ind->signal = BLOCKHAUS_SIGNAL_IDLE;
-    ind->pulse_timer = NULL;
-    ind->pulse_count = 0;
+    ind->blink = NULL;
 
-    ind->obj = lv_obj_create(parent);
-    lv_obj_remove_style_all(ind->obj);
-    lv_obj_set_style_radius(ind->obj, BLOCKHAUS_CORNER, 0);
-    lv_obj_set_style_border_width(ind->obj, 0, 0);
-    lv_obj_set_style_bg_opa(ind->obj, LV_OPA_COVER, 0);
-    lv_obj_set_size(ind->obj, 14, 14);
+    ind->obj = blockhaus_block_create(parent, 14, 14);
 
     ind->label = lv_label_create(parent);
     lv_obj_set_style_text_font(ind->label, blockhaus_font_mono(14), 0);
     lv_obj_set_style_text_color(ind->label, lv_color_hex(0x888888), 0);
     lv_label_set_text(ind->label, "");
 
-    lv_obj_set_style_bg_color(ind->obj, lv_color_hex(blockhaus_resting(hue)), 0);
+    lv_obj_set_style_bg_color(ind->obj, lv_color_hex(blockhaus_color_of(hue, BLOCKHAUS_SIGNAL_IDLE)), 0);
     return ind;
 }
 
 void blockhaus_indicator_set_signal(blockhaus_indicator_handle_t ind, int sig)
 {
     if (!ind) return;
-
-    if (ind->pulse_timer) {
-        lv_timer_del(ind->pulse_timer);
-        ind->pulse_timer = NULL;
-    }
-    ind->pulse_count = 0;
     ind->signal = sig;
 
-    blockhaus_color_t color = blockhaus_color_of(ind->hue, sig);
-    lv_obj_set_style_bg_color(ind->obj, lv_color_hex(color), 0);
+    if (ind->blink) { blockhaus_blink_stop(&ind->blink); }
 
-    if (sig == BLOCKHAUS_SIGNAL_ACTIVE || sig == BLOCKHAUS_SIGNAL_ATTENTION) {
-        ind->pulse_timer = lv_timer_create(indicator_pulse_cb, 600, ind);
-    } else if (sig == BLOCKHAUS_SIGNAL_WARNING || sig == BLOCKHAUS_SIGNAL_CRITICAL) {
-        ind->pulse_timer = lv_timer_create(indicator_pulse_cb, 300, ind);
+    int hue = blockhaus_signal_hue(ind->hue, sig);
+    int period = blockhaus_signal_blink_period(sig);
+
+    if (period > 0) {
+        ind->blink = blockhaus_blink_start(ind->obj,
+                                           blockhaus_resting(hue),
+                                           blockhaus_active(hue),
+                                           period);
+    } else {
+        lv_obj_set_style_bg_color(ind->obj, lv_color_hex(blockhaus_color_of(ind->hue, sig)), 0);
     }
 }
 

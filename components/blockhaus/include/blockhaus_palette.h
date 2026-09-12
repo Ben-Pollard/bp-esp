@@ -24,6 +24,11 @@ blockhaus_color_t blockhaus_spectrum_color(int index);
 blockhaus_color_t blockhaus_spectrum_active(int index);
 int         blockhaus_spectrum_count(void);
 
+/* Continuous cyclic ramp across the spectrum, t in [0,1). Returns an
+ * interpolated colour so a "card" of spectrum light can slide smoothly
+ * rather than snapping between the discrete entries. */
+blockhaus_color_t blockhaus_spectrum_ramp(float t);
+
 blockhaus_color_t blockhaus_bg(void);
 blockhaus_color_t blockhaus_surface(void);
 

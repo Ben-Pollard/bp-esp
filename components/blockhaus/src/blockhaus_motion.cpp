@@ -1,13 +1,16 @@
 #include "blockhaus_motion.h"
+#include "blockhaus_palette.h"
 #include <cstdlib>
 #include <cmath>
 
-static uint32_t dim_hex(uint32_t color, float factor)
+static uint32_t mix_hex(uint32_t a, uint32_t b, float t)
 {
-    uint8_t r = (uint8_t)(((color >> 16) & 0xFF) * factor);
-    uint8_t g = (uint8_t)(((color >> 8) & 0xFF) * factor);
-    uint8_t b = (uint8_t)((color & 0xFF) * factor);
-    return ((uint32_t)r << 16) | ((uint32_t)g << 8) | b;
+    if (t < 0.0f) t = 0.0f;
+    if (t > 1.0f) t = 1.0f;
+    uint8_t r = (uint8_t)((((a >> 16) & 0xFF) * (1.0f - t)) + (((b >> 16) & 0xFF) * t));
+    uint8_t g = (uint8_t)((((a >> 8) & 0xFF) * (1.0f - t)) + (((b >> 8) & 0xFF) * t));
+    uint8_t bl = (uint8_t)(((a & 0xFF) * (1.0f - t)) + ((b & 0xFF) * t));
+    return ((uint32_t)r << 16) | ((uint32_t)g << 8) | bl;
 }
 
 /* ── Sweep ── */
@@ -74,51 +77,156 @@ void blockhaus_sweep_stop(lv_anim_t **anim)
     free(a);
 }
 
-/* ── Propagate ── */
+/* ── Pulse ── */
 
-struct blockhaus_propagate_t {
+struct blockhaus_pulse_t {
     lv_obj_t **blocks;
     int count;
-    blockhaus_color_t active;
-    blockhaus_color_t rest;
+    int hue;
+    blockhaus_pulse_mode_t mode;
     int pos;
+    float phase;
     lv_timer_t *timer;
 };
 
-static void propagate_cb(lv_timer_t *tm)
+/* Envelope falloff: full brightness at the crest, shading to 0 over WIDTH
+ * blocks on each side. Gaussian-ish (cosine) so the transition reads as a
+ * wave, not a ramp. */
+#define PULSE_HALF_WIDTH 3.0f
+
+static float pulse_env(int d)
 {
-    blockhaus_propagate_t *p = (blockhaus_propagate_t *)lv_timer_get_user_data(tm);
-    for (int i = 0; i < p->count; i++) {
-        int d = abs(i - p->pos);
-        blockhaus_color_t c;
-        if (d == 0) c = p->active;
-        else if (d == 1) c = dim_hex(p->active, 0.35f);
-        else c = p->rest;
-        lv_obj_set_style_bg_color(p->blocks[i], lv_color_hex(c), 0);
-    }
-    p->pos = (p->pos + 1) % p->count;
+    float dd = (float)d;
+    if (dd >= PULSE_HALF_WIDTH) return 0.0f;
+    return 0.5f + 0.5f * cosf((dd / PULSE_HALF_WIDTH) * (float)M_PI);
 }
 
-blockhaus_propagate_handle_t blockhaus_propagate_start(lv_obj_t **blocks, int count,
-    blockhaus_color_t active_color, blockhaus_color_t rest_color, int period_ms)
+static void pulse_cb(lv_timer_t *tm)
 {
-    blockhaus_propagate_t *p = (blockhaus_propagate_t *)malloc(sizeof(blockhaus_propagate_t));
+    blockhaus_pulse_t *p = (blockhaus_pulse_t *)lv_timer_get_user_data(tm);
+
+    /* Fractional crest lets the colour pulse slide smoothly along the
+     * spectrum rather than snapping between indices. */
+    p->phase += 1.0f;
+    int crest = (int)p->phase % p->count;
+
+    for (int i = 0; i < p->count; i++) {
+        /* Wrap-around distance so the crest leaves one edge and enters the
+         * other continuously. */
+        int d = i - crest;
+        if (d < 0) d = -d;
+        int wrap = p->count - d;
+        if (wrap < d) d = wrap;
+
+        float env = pulse_env(d);
+        blockhaus_color_t crest_color;
+        blockhaus_color_t rest_color = blockhaus_resting(p->hue);
+
+        if (p->mode == BLOCKHAUS_PULSE_COLOR) {
+            /* Slide the crest along the spectrum array. */
+            int n = blockhaus_spectrum_count();
+            float t = (float)crest / (float)p->count;
+            int idx = (int)(t * n) % n;
+            crest_color = blockhaus_spectrum_active(idx);
+        } else {
+            crest_color = blockhaus_active(p->hue);
+        }
+
+        lv_obj_set_style_bg_color(p->blocks[i],
+            lv_color_hex(mix_hex(rest_color, crest_color, env)), 0);
+    }
+}
+
+blockhaus_pulse_handle_t blockhaus_pulse_start(lv_obj_t **blocks, int count, int hue,
+    int period_ms, blockhaus_pulse_mode_t mode)
+{
+    if (!blocks || count <= 0) return NULL;
+    blockhaus_pulse_t *p = (blockhaus_pulse_t *)malloc(sizeof(blockhaus_pulse_t));
     if (!p) return NULL;
     p->blocks = blocks;
     p->count = count;
-    p->active = active_color;
-    p->rest = rest_color;
+    p->hue = hue;
+    p->mode = mode;
     p->pos = 0;
-    p->timer = lv_timer_create(propagate_cb, (uint32_t)period_ms, p);
+    p->phase = 0.0f;
+    p->timer = lv_timer_create(pulse_cb, (uint32_t)period_ms, p);
     return p;
 }
 
-void blockhaus_propagate_stop(blockhaus_propagate_handle_t *handle)
+void blockhaus_pulse_stop(blockhaus_pulse_handle_t *handle)
 {
     if (!handle || !*handle) return;
-    blockhaus_propagate_t *p = (blockhaus_propagate_t *)*handle;
+    blockhaus_pulse_t *p = *handle;
     if (p->timer) lv_timer_del(p->timer);
     free(p);
+    *handle = NULL;
+}
+
+/* ── Blink ── */
+
+struct blockhaus_blink_t {
+    lv_obj_t *obj;
+    blockhaus_color_t rest;
+    blockhaus_color_t active;
+    int period_ms;
+    float phase;
+    lv_timer_t *timer;
+};
+
+#define BLINK_STEP_MS 40
+
+/* A blink is a clear alternation: hold the active colour, then hold the rest
+ * colour, with a brief eased transition between. A square-ish wave with soft
+ * edges reads as "blinking", whereas a pure sine at these tempos reads as a
+ * tremble/chatter. */
+static void blink_cb(lv_timer_t *tm)
+{
+    blockhaus_blink_t *b = (blockhaus_blink_t *)lv_timer_get_user_data(tm);
+    b->phase += (float)BLINK_STEP_MS / (float)b->period_ms;
+    if (b->phase >= 1.0f) b->phase -= 1.0f;
+
+    /* 0..1 ramp over a narrow window at the start of the on-phase, hold the
+     * rest. Maps to a soft rise, a hold, then a snap back to rest. */
+    const float transition = 0.25f;
+    float s;
+    if (b->phase < transition) {
+        float t = b->phase / transition;
+        s = t * t * (3.0f - 2.0f * t); /* smoothstep rise */
+    } else if (b->phase < 0.5f) {
+        s = 1.0f; /* hold lit */
+    } else if (b->phase < 0.5f + transition) {
+        float t = (b->phase - 0.5f) / transition;
+        s = 1.0f - (t * t * (3.0f - 2.0f * t)); /* smoothstep fall */
+    } else {
+        s = 0.0f; /* hold dark */
+    }
+
+    lv_obj_set_style_bg_color(b->obj, lv_color_hex(mix_hex(b->rest, b->active, s)), 0);
+}
+
+blockhaus_blink_handle_t blockhaus_blink_start(lv_obj_t *obj,
+                                               blockhaus_color_t rest_color,
+                                               blockhaus_color_t active_color,
+                                               int period_ms)
+{
+    if (!obj || period_ms <= 0) return NULL;
+    blockhaus_blink_t *b = (blockhaus_blink_t *)malloc(sizeof(blockhaus_blink_t));
+    if (!b) return NULL;
+    b->obj = obj;
+    b->rest = rest_color;
+    b->active = active_color;
+    b->period_ms = period_ms;
+    b->phase = 0.0f;
+    b->timer = lv_timer_create(blink_cb, BLINK_STEP_MS, b);
+    return b;
+}
+
+void blockhaus_blink_stop(blockhaus_blink_handle_t *handle)
+{
+    if (!handle || !*handle) return;
+    blockhaus_blink_t *b = *handle;
+    if (b->timer) lv_timer_del(b->timer);
+    free(b);
     *handle = NULL;
 }
 

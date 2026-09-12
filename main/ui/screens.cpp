@@ -16,8 +16,10 @@ static void set_tab_active(int active)
 {
     for (int i = 0; i < 3; i++) {
         if (!s_btn[i]) continue;
-        lv_obj_set_style_bg_color(s_btn[i],
-            lv_color_hex(blockhaus_active(i == active ? s_tab_hue[i] : BLOCKHAUS_HUE_NEUTRAL)), 0);
+        blockhaus_color_t c = (i == active)
+            ? blockhaus_active(s_tab_hue[i])
+            : blockhaus_resting(s_tab_hue[i]);
+        lv_obj_set_style_bg_color(s_btn[i], lv_color_hex(c), 0);
     }
 }
 
@@ -70,7 +72,7 @@ static void main_ui_timer_cb(lv_timer_t *tm)
     lv_obj_add_event_cb(btn_c, show_controls, LV_EVENT_CLICKED, NULL);
 
     lv_obj_t *btn_v = blockhaus_block_create(bar, 100, 22);
-    lv_obj_set_style_bg_color(btn_v, lv_color_hex(blockhaus_resting(BLOCKHAUS_HUE_NEUTRAL)), 0);
+    lv_obj_set_style_bg_color(btn_v, lv_color_hex(blockhaus_resting(BLOCKHAUS_HUE_FOREST)), 0);
     lv_obj_add_flag(btn_v, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_t *lbl_v = lv_label_create(btn_v);
     lv_label_set_text(lbl_v, "Visual");
@@ -79,7 +81,7 @@ static void main_ui_timer_cb(lv_timer_t *tm)
     lv_obj_add_event_cb(btn_v, show_visual, LV_EVENT_CLICKED, NULL);
 
     lv_obj_t *btn_s = blockhaus_block_create(bar, 100, 22);
-    lv_obj_set_style_bg_color(btn_s, lv_color_hex(blockhaus_resting(BLOCKHAUS_HUE_NEUTRAL)), 0);
+    lv_obj_set_style_bg_color(btn_s, lv_color_hex(blockhaus_resting(BLOCKHAUS_HUE_NAVY)), 0);
     lv_obj_add_flag(btn_s, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_t *lbl_s = lv_label_create(btn_s);
     lv_label_set_text(lbl_s, "Signals");

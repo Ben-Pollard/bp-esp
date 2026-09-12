@@ -4,8 +4,21 @@
 
 static blockhaus_indicator_handle_t s_demo_inds[BLOCKHAUS_SIGNAL_COUNT];
 static const char *s_demo_labels[BLOCKHAUS_SIGNAL_COUNT] = {
-    "idle", "active", "attention", "warning", "critical"
+    "idle", "active", "warning", "success", "fault"
 };
+
+static blockhaus_signal_strip_handle_t s_strip = NULL;
+static int s_strip_state = 0;
+
+static void strip_demo_cb(lv_timer_t *tm)
+{
+    static const int seq[] = {
+        BLOCKHAUS_SIGNAL_IDLE, BLOCKHAUS_SIGNAL_ACTIVE, BLOCKHAUS_SIGNAL_FAULT,
+    };
+    blockhaus_signal_strip_set_signal(s_strip, seq[s_strip_state]);
+    s_strip_state = (s_strip_state + 1) % (int)(sizeof(seq) / sizeof(seq[0]));
+    (void)tm;
+}
 
 void create_signals_tab(lv_obj_t *parent)
 {
@@ -37,8 +50,10 @@ void create_signals_tab(lv_obj_t *parent)
         lv_obj_set_style_pad_all(col, 0, 0);
         lv_obj_set_size(col, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
 
-        int hue = (i < BLOCKHAUS_HUE_COUNT) ? i : BLOCKHAUS_HUE_NAVY;
-        blockhaus_indicator_handle_t ind = blockhaus_indicator_create(col, hue);
+        /* Every block shares the same base hue (blue). The signal mapping, not
+         * per-block hue, decides the colour — so idle and active are both blue,
+         * warning mustard, success forest, fault maroon. */
+        blockhaus_indicator_handle_t ind = blockhaus_indicator_create(col, BLOCKHAUS_HUE_NAVY);
         blockhaus_indicator_set_signal(ind, i);
         blockhaus_indicator_set_label(ind, s_demo_labels[i]);
         s_demo_inds[i] = ind;
@@ -57,7 +72,8 @@ void create_signals_tab(lv_obj_t *parent)
     lv_obj_set_style_text_font(sig_title, blockhaus_font_mono(14), 0);
     lv_obj_set_style_text_color(sig_title, lv_color_hex(0x888888), 0);
 
-    blockhaus_signal_strip_create(parent, 10, BLOCKHAUS_HUE_NAVY);
+    s_strip = blockhaus_signal_strip_create(parent, 10, BLOCKHAUS_HUE_NAVY);
+    lv_timer_create(strip_demo_cb, 2000, NULL);
 
     lv_obj_t *desc = lv_label_create(parent);
     lv_label_set_text(desc, "Pulse travels across the row —\nreusable processing animation.");

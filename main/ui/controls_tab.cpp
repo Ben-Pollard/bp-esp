@@ -3,9 +3,6 @@
 #include "blockhaus.h"
 #include <cstdlib>
 
-static blockhaus_indicator_handle_t s_ind_r = NULL;
-static blockhaus_indicator_handle_t s_ind_g = NULL;
-static blockhaus_indicator_handle_t s_ind_b = NULL;
 static lv_obj_t *s_ldr_label = NULL;
 static uint8_t s_rgb_val[3] = {0, 0, 0};
 
@@ -16,23 +13,11 @@ typedef struct {
     Supervisor *sup;
 } slider_ctx_t;
 
-static void update_indicators(void)
-{
-    if (!s_ind_r) return;
-    int sig_r = (s_rgb_val[0] > 0) ? BLOCKHAUS_SIGNAL_ACTIVE : BLOCKHAUS_SIGNAL_IDLE;
-    int sig_g = (s_rgb_val[1] > 0) ? BLOCKHAUS_SIGNAL_ACTIVE : BLOCKHAUS_SIGNAL_IDLE;
-    int sig_b = (s_rgb_val[2] > 0) ? BLOCKHAUS_SIGNAL_ACTIVE : BLOCKHAUS_SIGNAL_IDLE;
-    blockhaus_indicator_set_signal(s_ind_r, sig_r);
-    blockhaus_indicator_set_signal(s_ind_g, sig_g);
-    blockhaus_indicator_set_signal(s_ind_b, sig_b);
-}
-
 static void led_slider_r(int value, void *user_data)
 {
     Supervisor *sup = (Supervisor *)user_data;
     s_rgb_val[0] = (uint8_t)value;
     sup->submit({CommandKind::SetRgb, s_rgb_val[0], s_rgb_val[1], s_rgb_val[2]});
-    update_indicators();
 }
 
 static void led_slider_g(int value, void *user_data)
@@ -40,7 +25,6 @@ static void led_slider_g(int value, void *user_data)
     Supervisor *sup = (Supervisor *)user_data;
     s_rgb_val[1] = (uint8_t)value;
     sup->submit({CommandKind::SetRgb, s_rgb_val[0], s_rgb_val[1], s_rgb_val[2]});
-    update_indicators();
 }
 
 static void led_slider_b(int value, void *user_data)
@@ -48,7 +32,6 @@ static void led_slider_b(int value, void *user_data)
     Supervisor *sup = (Supervisor *)user_data;
     s_rgb_val[2] = (uint8_t)value;
     sup->submit({CommandKind::SetRgb, s_rgb_val[0], s_rgb_val[1], s_rgb_val[2]});
-    update_indicators();
 }
 
 static void bl_slider(int value, void *user_data)
@@ -127,36 +110,10 @@ static void poll_timer_cb(lv_timer_t *tm)
     s_rgb_val[0] = s.rgb[0];
     s_rgb_val[1] = s.rgb[1];
     s_rgb_val[2] = s.rgb[2];
-    update_indicators();
 }
 
 void create_controls_tab(lv_obj_t *parent, Supervisor *sup)
 {
-    lv_obj_t *ind_row = lv_obj_create(parent);
-    lv_obj_remove_style_all(ind_row);
-    lv_obj_set_size(ind_row, lv_pct(100), 22);
-    lv_obj_set_flex_flow(ind_row, LV_FLEX_FLOW_ROW);
-    lv_obj_set_style_pad_column(ind_row, 12, 0);
-    lv_obj_set_style_pad_all(ind_row, 2, 0);
-
-    s_ind_r = blockhaus_indicator_create(ind_row, BLOCKHAUS_HUE_MAROON);
-    blockhaus_indicator_set_label(s_ind_r, "R");
-
-    s_ind_g = blockhaus_indicator_create(ind_row, BLOCKHAUS_HUE_FOREST);
-    blockhaus_indicator_set_label(s_ind_g, "G");
-
-    s_ind_b = blockhaus_indicator_create(ind_row, BLOCKHAUS_HUE_NAVY);
-    blockhaus_indicator_set_label(s_ind_b, "B");
-
-    int i = 0;
-    lv_obj_t *child = lv_obj_get_child(ind_row, (uint32_t)i);
-    while (child) {
-        blockhaus_indicator_handle_t h = (i == 0) ? s_ind_r : (i == 1) ? s_ind_g : s_ind_b;
-        lv_obj_center(blockhaus_indicator_obj(h));
-        i++;
-        child = lv_obj_get_child(ind_row, (uint32_t)i);
-    }
-
     create_slider_row(parent, "R", BLOCKHAUS_HUE_MAROON, 0, on_rgb_r, sup);
     create_slider_row(parent, "G", BLOCKHAUS_HUE_FOREST, 0, on_rgb_g, sup);
     create_slider_row(parent, "B", BLOCKHAUS_HUE_NAVY, 0, on_rgb_b, sup);
